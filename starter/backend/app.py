@@ -16,19 +16,37 @@ def serve_static(filename):
 
 @app.route('/api/orders', methods=['POST'])
 def add_order_api():
-    pass
+    data = request.get_json()
+    order_tracker.add_order(data['order_id'], data['item_name'], data['quantity'], data['customer_id'], data.get('status', 'pending'))
+    result = order_tracker.get_order_by_id(data['order_id'])
+    return jsonify(result), 201
+    
 
 @app.route('/api/orders/<string:order_id>', methods=['GET'])
 def get_order_api(order_id):
-    pass
+    result = order_tracker.get_order_by_id(order_id)
+    if result is None:
+        return jsonify(result), 404
+    return jsonify(result), 200
+    
 
 @app.route('/api/orders/<string:order_id>/status', methods=['PUT'])
 def update_order_status_api(order_id):
-    pass
+    data = request.get_json()
+    order_tracker.update_order_status(order_id,data['new_status'])
+    result = order_tracker.get_order_by_id(order_id)
+    return jsonify(result), 200
+
+
 
 @app.route('/api/orders', methods=['GET'])
 def list_orders_api():
-    pass
+    status = request.args.get('status')
+    if status is not None:
+        result = order_tracker.list_orders_by_status(status)
+        return jsonify(result), 200
+    result = order_tracker.list_all_orders()
+    return jsonify(result), 200
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", debug=True)
